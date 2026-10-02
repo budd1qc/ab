@@ -32,7 +32,7 @@ dialog{border:1px solid var(--bd);border-radius:12px;background:var(--cd);color:
  <div class="card"><div id="slotHome"><div id="cam"><video id="vid" playsinline muted></video></div></div>
  <p id="msg" class="msg">Memuat…</p>
  <div id="sim" hidden style="text-align:center">Mode Preview: <select id="simP"></select> <button onclick="absen($('#simP').value)">Simulasi scan</button></div></div>
- <div class="card"><h3>10 absensi terakhir.</h3><div class="sc"><table><thead><tr><th>Nama</th><th>Tanggal</th><th>Datang</th><th>Pulang</th><th>Status</th></tr></thead><tbody id="last"></tbody></table></div></div>
+ <div class="card"><h3>10 absensi terakhir</h3><div class="sc"><table><thead><tr><th>Nama</th><th>Tanggal</th><th>Datang</th><th>Pulang</th><th>Status</th></tr></thead><tbody id="last"></tbody></table></div></div>
 </section>
 <section id="adm" hidden>
  <nav><button data-t="dash">Dashboard</button><button data-t="peg">Pegawai</button><button data-t="reg">Registrasi wajah</button><button data-t="rek">Rekap</button><button data-t="set">Pengaturan</button><button data-t="syn">Sinkronisasi</button></nav>
@@ -57,9 +57,9 @@ dialog{border:1px solid var(--bd);border-radius:12px;background:var(--cd);color:
 <script>
 // ===== KONFIGURASI APLIKASI =====
 // Ubah IS_PREVIEW ke false untuk penggunaan sungguhan
-const IS_PREVIEW = true;
-const GAS_URL = "URL_DEPLOY_GAS_ANDA_DISINI";
-const API_TOKEN = "GANTI_TOKEN_RAHASIA"; // harus sama dengan TOKEN di Code.gs
+const IS_PREVIEW = false;
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyANIe0q5DcW1rQDEMxi0_z2ImdHXQD9UBB4sX9_zlXjDOZWSFK9RMd6qr6YDKD5BnlBQ/exec";
+const API_TOKEN = "perumdtar"; // harus sama dengan TOKEN di Code.gs
 const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/";
 
 const $=s=>document.querySelector(s);
