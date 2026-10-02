@@ -1,0 +1,13 @@
+{
+  "name": "Absensi Wajah",
+  "short_name": "Absensi",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f766e",
+  "theme_color": "#0f766e",
+  "icons": [{
+    "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f766e'/%3E%3Ccircle cx='50' cy='40' r='17' fill='white'/%3E%3Cpath d='M20 85c4-20 18-28 30-28s26 8 30 28z' fill='white'/%3E%3C/svg%3E",
+    "sizes": "any",
+    "type": "image/svg+xml"
+  }]
+}

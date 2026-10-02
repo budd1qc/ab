@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Absensi Wajah</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0f766e">
+<style>
+:root{--bg:#eef2f4;--cd:#fff;--tx:#14202b;--mu:#5b6a77;--bd:#d8e0e5;--ok:#157f3b;--er:#b42318}
+@media(prefers-color-scheme:dark){:root{--bg:#0e151b;--cd:#17212a;--tx:#e8eef3;--mu:#93a2ae;--bd:#2a3743;--ok:#4ade80;--er:#f87171}}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--tx)}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px;background:var(--cd);border-bottom:1px solid var(--bd)}
+main{max-width:980px;margin:0 auto;padding:16px;display:grid;gap:16px}
+section{display:grid;gap:16px}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:16px}
+h3{margin:0 0 10px}
+button{background:#0f766e;color:#fff;border:0;border-radius:8px;padding:9px 14px;font:inherit;cursor:pointer;margin:2px 0}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #2dd4bf;outline-offset:1px}
+input,select{padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;max-width:100%}
+#cam{aspect-ratio:4/3;max-width:520px;margin:0 auto;background:#0b1217;border-radius:10px;overflow:hidden}
+#vid{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.msg{margin:10px 0 0;text-align:center;font-size:18px;font-weight:600}.ok{color:var(--ok)}.er{color:var(--er)}
+.sc{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);white-space:nowrap}
+.bd{font-size:13px;padding:3px 10px;border:1px solid var(--bd);border-radius:20px;color:var(--mu)}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+.st{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.st div{border:1px solid var(--bd);border-radius:8px;padding:12px}.st b{font-size:26px;display:block}
+dialog{border:1px solid var(--bd);border-radius:12px;background:var(--cd);color:var(--tx);max-width:340px;width:90%}
+</style></head><body>
+<header><b id="ttl">Absensi Wajah</b><div><span id="net" class="bd"></span>
+<button id="bAdm" class="g" onclick="$('#lerr').textContent='';$('#dlg').showModal()">Login admin</button>
+<button id="bOut" class="g" hidden onclick="admin=null;show('home')">Keluar</button></div></header>
+<main>
+<section id="home">
+ <div class="card"><div id="slotHome"><div id="cam"><video id="vid" playsinline muted></video></div></div>
+ <p id="msg" class="msg">Memuat…</p>
+ <div id="sim" hidden style="text-align:center">Mode Preview: <select id="simP"></select> <button onclick="absen($('#simP').value)">Simulasi scan</button></div></div>
+ <div class="card"><h3>10 absensi terakhir</h3><div class="sc"><table><thead><tr><th>Nama</th><th>Tanggal</th><th>Datang</th><th>Pulang</th><th>Status</th></tr></thead><tbody id="last"></tbody></table></div></div>
+</section>
+<section id="adm" hidden>
+ <nav><button data-t="dash">Dashboard</button><button data-t="peg">Pegawai</button><button data-t="reg">Registrasi wajah</button><button data-t="rek">Rekap</button><button data-t="set">Pengaturan</button><button data-t="syn">Sinkronisasi</button></nav>
+ <div class="card tb" id="t-dash"><h3>Dashboard</h3><div id="dash" class="st"></div></div>
+ <div class="card tb" id="t-peg"><h3>Data pegawai</h3><p><input id="pn" placeholder="Nama"> <input id="pj" placeholder="Jabatan"> <button onclick="addP()">Tambah pegawai</button></p>
+  <div class="sc"><table><thead><tr><th>Nama</th><th>Jabatan</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="pegT"></tbody></table></div></div>
+ <div class="card tb" id="t-reg"><h3>Registrasi wajah</h3><p><select id="regP"></select></p><div id="slotReg"></div>
+  <p><button onclick="ambil()">Ambil sampel</button> <button class="g" onclick="samples=[];$('#smp').textContent='0 sampel'">Ulangi</button> <button onclick="simpanWajah()">Simpan wajah</button> <span id="smp">0 sampel</span></p>
+  <p style="color:var(--mu)">Ambil minimal 3 sampel dengan sedikit variasi sudut. Menyimpan akan mengganti wajah lama pegawai tersebut.</p></div>
+ <div class="card tb" id="t-rek"><h3>Rekap absensi</h3><p><input type="date" id="r1"> s/d <input type="date" id="r2"> <button onclick="rRek()">Tampilkan</button> <button class="g" onclick="csv()">Ekspor CSV</button></p>
+  <div class="sc"><table><thead><tr><th>Nama</th><th>Tanggal</th><th>Datang</th><th>Pulang</th><th>Status</th></tr></thead><tbody id="rekT"></tbody></table></div></div>
+ <div class="card tb" id="t-set"><h3>Pengaturan</h3>
+  <p>Nama instansi<br><input id="sIn"></p><p>Ambang kecocokan wajah (0.3–0.7, makin kecil makin ketat)<br><input id="sTh" type="number" step="0.05" min="0.3" max="0.7"></p>
+  <p>Jeda minimal datang ke pulang (menit)<br><input id="sJ" type="number" min="0"></p><button onclick="saveSet()">Simpan pengaturan</button></div>
+ <div class="card tb" id="t-syn"><h3>Sinkronisasi</h3><p id="synI"></p><button onclick="sync(true)">Sinkronkan sekarang</button> <button class="g" onclick="initSync()">Initial sync ulang</button></div>
+</section>
+</main>
+<dialog id="dlg"><h3>Login admin</h3><p><input id="lu" placeholder="Username" autocomplete="username"></p><p><input id="lp" type="password" placeholder="Password" autocomplete="current-password"></p>
+<p id="lerr" class="er"></p><button onclick="login()">Masuk</button> <button class="g" onclick="$('#dlg').close()">Batal</button></dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
+<script>
+// ===== KONFIGURASI APLIKASI =====
+// Ubah IS_PREVIEW ke false untuk penggunaan sungguhan
+const IS_PREVIEW = true;
+const GAS_URL = "URL_DEPLOY_GAS_ANDA_DISINI";
+const API_TOKEN = "GANTI_TOKEN_RAHASIA"; // harus sama dengan TOKEN di Code.gs
+const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/";
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
+const hm=()=>{const d=new Date();return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`};
+const toMin=t=>{const [h,m]=String(t).split(':');return +h*60+ +m};
+const KEY={pegawai:'pegawai_id',face:'descriptor_id',absensi:'absensi_id',meta:'k'};
+let db,S={threshold:0.5,jeda_menit:60,instansi:'Absensi Wajah'},admin=null,matcher=null,pegawaiMap={},stream=null,view='home',
+    modelsOK=false,syncing=false,lastDone=0,last={id:null,n:0},samples=[];
+const DEV=localStorage.dev||(localStorage.dev=crypto.randomUUID());
+
+// ===== IndexedDB =====
+const openDB=()=>new Promise((res,rej)=>{const r=indexedDB.open(IS_PREVIEW?'absensi-preview':'absensi-db',1);
+ r.onupgradeneeded=()=>Object.keys(KEY).forEach(s=>r.result.createObjectStore(s,{keyPath:KEY[s]}));
+ r.onsuccess=()=>{db=r.result;res()};r.onerror=()=>rej(r.error)});
+const rq=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const st=(s,m='readonly')=>db.transaction(s,m).objectStore(s);
+const all=s=>rq(st(s).getAll()),get=(s,k)=>rq(st(s).get(k)),put=(s,v)=>rq(st(s,'readwrite').put(v));
+const nm=async()=>{const m={};(await all('pegawai')).forEach(p=>m[p.pegawai_id]=p.nama);return m};
+
+function say(t,c=''){const m=$('#msg');m.textContent=t;m.className='msg '+c}
+const idle=t=>{if(Date.now()-lastDone>3500)say(t)};
+
+// ===== Data pegawai & matcher =====
+async function loadPegawai(){pegawaiMap={};(await all('pegawai')).filter(p=>!+p.deleted&&+p.status_aktif!==0).forEach(p=>pegawaiMap[p.pegawai_id]=p)}
+async function buildMatcher(){
+ matcher=null;if(typeof faceapi==='undefined'||!modelsOK)return;
+ const by={};(await all('face')).filter(f=>!+f.deleted&&pegawaiMap[f.pegawai_id]).forEach(f=>(by[f.pegawai_id]??=[]).push(new Float32Array(f.descriptor)));
+ const L=Object.entries(by).map(([id,d])=>new faceapi.LabeledFaceDescriptors(id,d));
+ if(L.length)matcher=new faceapi.FaceMatcher(L,+S.threshold)}
+
+// ===== Absensi =====
+async function absen(pid){
+ const p=pegawaiMap[pid];if(!p)return say('Pegawai tidak dikenal','er');
+ const tg=today(),now=hm(),ts=Date.now();
+ let r=(await all('absensi')).find(a=>a.pegawai_id===pid&&a.tanggal===tg);
+ if(!r){r={absensi_id:crypto.randomUUID(),pegawai_id:pid,tanggal:tg,jam_datang:now,jam_pulang:'',device_id:DEV,created_at:ts,updated_at:ts,sync_status:'pending'};say(`${p.nama}: datang ${now}`,'ok')}
+ else if(!r.jam_pulang&&toMin(now)-toMin(r.jam_datang)>=+S.jeda_menit){r.jam_pulang=now;r.updated_at=ts;r.sync_status='pending';say(`${p.nama}: pulang ${now}`,'ok')}
+ else{lastDone=Date.now();return say(`${p.nama}: ${r.jam_pulang?'sudah absen datang dan pulang':'sudah absen datang, pulang bisa setelah jeda minimal'}`,'er')}
+ lastDone=Date.now();await put('absensi',r);refreshHome();sync()}
+
+// ===== Kamera & pengenalan =====
+async function loadModels(){if(typeof faceapi==='undefined')return false;
+ await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)]);return true}
+async function startCam(){if(stream)return;
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480}});$('#vid').srcObject=stream;await $('#vid').play();loop()}
+ catch(e){say('Kamera tidak bisa diakses. Izinkan akses kamera di browser.','er')}}
+const detect=()=>faceapi.detectSingleFace($('#vid'),new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:.5})).withFaceLandmarks().withFaceDescriptor();
+async function loop(){
+ if(view==='home'&&modelsOK&&matcher){
+  try{const d=await detect();
+   if(!d){last={id:null,n:0};idle('Arahkan wajah ke kamera')}
+   else{const m=matcher.findBestMatch(d.descriptor);
+    if(m.label==='unknown'){last={id:null,n:0};idle('Wajah tidak dikenali')}
+    else{last.id===m.label?last.n++:(last={id:m.label,n:1});
+     if(last.n>=2&&Date.now()-lastDone>4000){last={id:null,n:0};await absen(m.label)}}}}catch(e){}}
+ setTimeout(loop,400)}
+
+// ===== Sinkronisasi dua arah =====
+async function api(body){const r=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({token:API_TOKEN,device_id:DEV,...body})});return r.json()}
+async function sync(){
+ if(IS_PREVIEW||syncing||!navigator.onLine||GAS_URL.startsWith('URL_'))return;syncing=true;
+ try{
+  const since=(await get('meta','since'))?.v||0,pend=async s=>(await all(s)).filter(x=>x.sync_status==='pending');
+  const [pg,fc,ab]=await Promise.all([pend('pegawai'),pend('face'),pend('absensi')]),dirty=(await get('meta','sdirty'))?.v;
+  const body={action:'sync',since,absensi:ab,pegawai:admin?pg:[],face:admin?fc:[],admin:admin&&{u:admin.u,h:admin.h}};
+  if(admin&&dirty)body.settings=S;
+  const sent={};[['pegawai',body.pegawai],['face',body.face],['absensi',ab]].forEach(([s,l])=>l.forEach(x=>sent[s+x[KEY[s]]]=x.updated_at));
+  const r=await api(body);if(!r.ok)throw new Error(r.error);
+  for(const s of ['pegawai','face','absensi'])for(const id of r.confirmed[s]){const x=await get(s,id);if(x&&x.updated_at===sent[s+id]){x.sync_status='synced';await put(s,x)}}
+  for(const s of ['pegawai','face','absensi'])for(const x of r.changes[s]){
+   const l=await get(s,x[KEY[s]]);if(l&&l.sync_status==='pending')continue;
+   x.updated_at=+x.updated_at;x.sync_status='synced';if(s==='absensi')x.created_at=+x.created_at;
+   if(s==='face'&&typeof x.descriptor==='string')x.descriptor=JSON.parse(x.descriptor);await put(s,x)}
+  if(!dirty&&r.settings){S={threshold:+r.settings.threshold||.5,jeda_menit:+r.settings.jeda_menit||60,instansi:r.settings.instansi||S.instansi};await put('meta',{k:'settings',v:S})}
+  if(dirty)await put('meta',{k:'sdirty',v:false});
+  await put('meta',{k:'since',v:r.serverTime});await put('meta',{k:'lastsync',v:Date.now()});
+  await loadPegawai();await buildMatcher();$('#ttl').textContent=S.instansi
+ }catch(e){console.warn('Sync gagal:',e)}
+ syncing=false;refreshHome()}
+async function initSync(){await put('meta',{k:'since',v:0});sync()}
+
+// ===== Tampilan =====
+async function badge(){const p=(await Promise.all(['pegawai','face','absensi'].map(all))).flat().filter(x=>x.sync_status==='pending').length;
+ $('#net').textContent=(IS_PREVIEW?'Preview':navigator.onLine?'Online':'Offline')+', pending: '+p;return p}
+const stat=a=>`<td>${a.sync_status==='pending'?'Pending':'Synced'}</td>`;
+const rowAb=(a,n)=>`<tr><td>${esc(n[a.pegawai_id]||a.pegawai_id)}</td><td>${esc(a.tanggal)}</td><td>${esc(a.jam_datang)}</td><td>${esc(a.jam_pulang||'-')}</td>${stat(a)}</tr>`;
+async function refreshHome(){
+ const n=await nm(),l=(await all('absensi')).sort((a,b)=>b.updated_at-a.updated_at).slice(0,10);
+ $('#last').innerHTML=l.map(a=>rowAb(a,n)).join('')||'<tr><td colspan=5>Belum ada absensi</td></tr>';
+ if(IS_PREVIEW){$('#sim').hidden=false;$('#simP').innerHTML=Object.values(pegawaiMap).map(p=>`<option value="${p.pegawai_id}">${esc(p.nama)}</option>`).join('')}
+ badge()}
+const slot=s=>$(s).appendChild($('#cam'));
+function show(v){view=v;$('#home').hidden=v!=='home';$('#adm').hidden=v!=='admin';$('#bAdm').hidden=v==='admin';$('#bOut').hidden=v!=='admin';
+ if(v==='home'){slot('#slotHome');refreshHome()}else tab('dash')}
+function tab(t){document.querySelectorAll('.tb').forEach(x=>x.hidden=x.id!=='t-'+t);
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('g',b.dataset.t!==t));
+ if(t==='reg')slot('#slotReg');R[t]&&R[t]()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>tab(b.dataset.t));
+
+async function rDash(){const ab=(await all('absensi')).filter(a=>a.tanggal===today()),aktif=Object.keys(pegawaiMap).length,p=await badge(),
+ wj=new Set((await all('face')).filter(f=>!+f.deleted).map(f=>f.pegawai_id));
+ $('#dash').innerHTML=[['Pegawai aktif',aktif],['Hadir hari ini',ab.length],['Belum absen',Math.max(0,aktif-ab.length)],['Wajah terdaftar',Object.keys(pegawaiMap).filter(i=>wj.has(i)).length],['Pending sync',p]].map(([k,v])=>`<div><b>${v}</b>${k}</div>`).join('')}
+async function rPeg(){const l=(await all('pegawai')).filter(p=>!+p.deleted);
+ $('#pegT').innerHTML=l.map(p=>`<tr><td>${esc(p.nama)}</td><td>${esc(p.jabatan)}</td><td>${+p.status_aktif===0?'Nonaktif':'Aktif'}</td><td><button class="g" onclick="edtP('${p.pegawai_id}')">Ubah</button> <button class="g" onclick="togP('${p.pegawai_id}')">Aktif/nonaktif</button> <button class="g" onclick="delP('${p.pegawai_id}')">Hapus</button></td></tr>`).join('')||'<tr><td colspan=4>Belum ada pegawai. Tambahkan pegawai di atas.</td></tr>'}
+async function savP(p){p.updated_at=Date.now();p.sync_status='pending';await put('pegawai',p);await loadPegawai();await buildMatcher();rPeg();sync()}
+async function addP(){const n=$('#pn').value.trim();if(!n)return;await savP({pegawai_id:'P'+Date.now().toString(36).toUpperCase(),nama:n,jabatan:$('#pj').value.trim(),status_aktif:1,deleted:0});$('#pn').value=$('#pj').value=''}
+async function edtP(id){const p=await get('pegawai',id),n=prompt('Nama',p.nama);if(n===null)return;const j=prompt('Jabatan',p.jabatan);if(j===null)return;p.nama=n.trim()||p.nama;p.jabatan=j;savP(p)}
+async function togP(id){const p=await get('pegawai',id);p.status_aktif=+p.status_aktif===0?1:0;savP(p)}
+async function delP(id){if(!confirm('Hapus pegawai ini?'))return;const p=await get('pegawai',id);p.deleted=1;savP(p)}
+async function rReg(){$('#regP').innerHTML=Object.values(pegawaiMap).map(p=>`<option value="${p.pegawai_id}">${esc(p.nama)}</option>`).join('')}
+async function ambil(){if(!modelsOK)return alert('Model wajah belum dimuat. Buka aplikasi sekali saat online.');
+ const d=await detect();if(!d)return alert('Wajah tidak terdeteksi. Hadapkan wajah ke kamera.');samples.push(Array.from(d.descriptor));$('#smp').textContent=samples.length+' sampel'}
+async function simpanWajah(){const pid=$('#regP').value;if(!pid||samples.length<3)return alert('Pilih pegawai dan ambil minimal 3 sampel.');
+ for(const f of await all('face'))if(f.pegawai_id===pid&&!+f.deleted){f.deleted=1;f.updated_at=Date.now();f.sync_status='pending';await put('face',f)}
+ for(const d of samples)await put('face',{descriptor_id:crypto.randomUUID(),pegawai_id:pid,descriptor:d,deleted:0,updated_at:Date.now(),sync_status:'pending'});
+ samples=[];$('#smp').textContent='0 sampel';await buildMatcher();sync();alert('Wajah tersimpan.')}
+async function rekData(){const a=$('#r1').value||'0000',b=$('#r2').value||'9999';return(await all('absensi')).filter(x=>x.tanggal>=a&&x.tanggal<=b).sort((x,y)=>(y.tanggal+y.jam_datang).localeCompare(x.tanggal+x.jam_datang))}
+async function rRek(){if(!$('#r1').value)$('#r1').value=$('#r2').value=today();const n=await nm();$('#rekT').innerHTML=(await rekData()).map(a=>rowAb(a,n)).join('')||'<tr><td colspan=5>Tidak ada data pada rentang ini</td></tr>'}
+async function csv(){const n=await nm(),q=x=>`"${String(x??'').replace(/"/g,'""')}"`,
+ t=['Nama,Tanggal,Datang,Pulang'].concat((await rekData()).map(a=>[n[a.pegawai_id]||a.pegawai_id,a.tanggal,a.jam_datang,a.jam_pulang].map(q).join(',')));
+ const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([t.join('\n')],{type:'text/csv'}));l.download='rekap-absensi.csv';l.click()}
+function rSet(){$('#sIn').value=S.instansi;$('#sTh').value=S.threshold;$('#sJ').value=S.jeda_menit}
+async function saveSet(){S={instansi:$('#sIn').value.trim()||'Absensi Wajah',threshold:+$('#sTh').value||.5,jeda_menit:+$('#sJ').value>=0?+$('#sJ').value:60};
+ await put('meta',{k:'settings',v:S});await put('meta',{k:'sdirty',v:true});$('#ttl').textContent=S.instansi;await buildMatcher();sync();alert('Pengaturan tersimpan.')}
+async function rSyn(){const t=(await get('meta','lastsync'))?.v;$('#synI').textContent='Sinkron terakhir: '+(t?new Date(t).toLocaleString('id-ID'):'belum pernah')+'. Pending: '+await badge()}
+const R={dash:rDash,peg:rPeg,reg:rReg,rek:rRek,set:rSet,syn:rSyn};
+
+// ===== Login admin =====
+async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+async function login(){const u=$('#lu').value.trim(),p=$('#lp').value,e=$('#lerr');e.textContent='';
+ if(IS_PREVIEW){if(u!=='admin'||p!=='edudigital')return e.textContent='Username atau password salah.';admin={u,h:''}}
+ else{if(!navigator.onLine)return e.textContent='Login admin membutuhkan koneksi internet.';
+  const h=await sha(p),r=await api({action:'login',u,h}).catch(()=>null);
+  if(!r)return e.textContent='Server tidak terjangkau. Periksa GAS_URL.';if(!r.ok)return e.textContent='Username atau password salah.';admin={u,h}}
+ $('#lp').value='';$('#dlg').close();show('admin');sync()}
+
+// ===== Preview data =====
+async function seed(){if((await all('pegawai')).length)return;
+ for(const [i,n,j] of [['P001','Budi Santoso','Guru'],['P002','Siti Aminah','Staf TU'],['P003','Andi Wijaya','Satpam']])
+  await put('pegawai',{pegawai_id:i,nama:n,jabatan:j,status_aktif:1,deleted:0,updated_at:Date.now(),sync_status:'synced'})}
+
+// ===== Mulai =====
+(async()=>{
+ if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+ await openDB();if(IS_PREVIEW)await seed();                      // 1. database lokal
+ const sv=await get('meta','settings');if(sv)S=sv.v;$('#ttl').textContent=S.instansi;await loadPegawai();refreshHome();
+ say('Memuat model wajah…');                                      // 2. model wajah
+ try{modelsOK=await loadModels()}catch(e){modelsOK=false}
+ if(!modelsOK)say(IS_PREVIEW?'Model wajah tidak dimuat (preview). Gunakan Simulasi scan.':'Model wajah belum tersedia. Buka aplikasi sekali saat online.','er');
+ await sync();await loadPegawai();await buildMatcher();           // 3. sync jika online
+ if(modelsOK)say(matcher?'Arahkan wajah ke kamera':'Belum ada wajah terdaftar. Login admin untuk registrasi.');
+ show('home');startCam();                                         // 4. halaman awal + kamera
+ addEventListener('online',()=>{sync();badge()});addEventListener('offline',badge);setInterval(sync,60000);
+})();
+</script></body></html>
